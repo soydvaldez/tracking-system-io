@@ -1,0 +1,192 @@
+version: '3.8'
+
+services:
+  load-balancer-service:
+    build:
+      context: ./infraestructure/load-balancer-service/
+      dockerfile: Dockerfile
+    image: localhost:5000/load-balancer-service:1.0.0
+    container_name: load-balancer-service
+    ports:
+      - "80:80"
+    restart: always 
+    networks:
+      virtual_network:
+        ipv4_address: 173.18.0.4
+    depends_on:
+      - api-gateway-service1
+      - api-gateway-service2
+
+  postgres-service:
+    build:
+      context: ./infraestructure/postgres-service/
+      dockerfile: Dockerfile
+    image: localhost:5000/postgres-service:1.0.0
+    container_name: postgres-service
+    restart: always
+    # set shared memory limit when using docker-compose
+    shm_size: 128MB
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: mydatabase
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    networks:
+      virtual_network:
+            ipv4_address: 173.18.0.2
+
+  mongo-service:
+    build:
+      context: ./infraestructure/mongo-service/
+      dockerfile: Dockerfile
+    image: localhost:5000/mongo-service:1.0.0
+    container_name: mongo-service
+    ports:
+      - "27017:27017"
+    networks:
+      virtual_network:
+        ipv4_address: 173.18.0.3
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=admin
+    # volumes:
+      # - mongo-data:/data/db
+
+  rabbitmq-broker-service:
+    build:
+      context: ./infraestructure/rabbitmq-broker-service/
+      dockerfile: Dockerfile
+    image: localhost:5000/rabbitmq-broker-service:1.0.0
+    container_name: rabbitmq-broker-service
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: "4G"
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      virtual_network:
+        ipv4_address: 173.18.0.5
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    # volumes:
+      # - /Users/daniel/workspace/io.tracksystem/servers/rabbitmq/volume/data:/var/lib/rabbitmq
+      # - /Users/daniel/workspace/io.tracksystem/servers/rabbitmq/volume/logs:/var/log/rabbitmq
+
+  api-gateway-service1:
+    build:
+      context: ./api-gateway-service
+      dockerfile: Dockerfile
+    image: localhost:5000/api-gateway-service:1.0.0
+    container_name: api-gateway-service1
+    ports:
+      - "8080:8080"
+    networks:
+      virtual_network:
+        ipv4_address: 173.18.0.12
+    environment: 
+      - SPRING_PROFILES_ACTIVE=prod
+    depends_on:
+      - sensor-manager-service
+      - sensor-ingest-service
+
+  api-gateway-service2:
+    build:
+      context: ./api-gateway-service
+      dockerfile: Dockerfile
+    image: localhost:5000/api-gateway-service:1.0.0
+    container_name: api-gateway-service2
+    ports:
+      - "8081:8080"
+    networks:
+      virtual_network:
+        ipv4_address: 173.18.0.11
+    environment: 
+      - SPRING_PROFILES_ACTIVE=prod
+    depends_on:
+      - sensor-manager-service
+      - sensor-ingest-service
+
+  sensor-manager-service:
+    build:
+      context: ./sensor-manager-service
+      dockerfile: Dockerfile
+    image: localhost:5000/sensor-manager-service:1.0.0
+    container_name: sensor-manager-service
+    ports:
+      - "8002:8080"
+    networks:
+      virtual_network:
+        ipv4_address: 173.18.0.10
+    environment:
+      - SERVER_PORT=8080
+      - SPRING_RABBITMQ_HOST=rabbitmq-broker-service
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=guest
+      - SPRING_RABBITMQ_PASSWORD=guest
+      - SPRING_DATASOURCE_DRIVER-CLASS-NAME=org.postgresql.Driver
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-service:5432/mydatabase
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+    depends_on:
+      - rabbitmq-broker-service
+      - postgres-service
+
+  sensor-ingest-service:
+    build:
+      context: ./sensor-ingest-service
+      dockerfile: Dockerfile
+    image: localhost:5000/sensor-ingest-service:1.0.0
+    container_name: sensor-ingest-service
+    ports:
+      - "8000:8080"
+    networks:
+      virtual_network:
+        ipv4_address: 173.18.0.7
+    environment:
+      - SPRING_PROFILES_ACTIVE=default
+      - SERVER_PORT=8080
+      - SPRING_RABBITMQ_HOST=rabbitmq-broker-service
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=guest
+      - SPRING_RABBITMQ_PASSWORD=guest
+    depends_on:
+      - rabbitmq-broker-service
+
+  sensor-storage-service:
+    build:
+      context: ./sensor-storage-service
+      dockerfile: Dockerfile
+    image: localhost:5000/sensor-storage-service:1.0.0
+    container_name: sensor-storage-service
+    networks:
+      virtual_network:
+        ipv4_address: 173.18.0.8
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_RABBITMQ_HOST=rabbitmq-broker-service
+      - SPRING_RABBITMQ_PORT=5672
+      - SPRING_RABBITMQ_USERNAME=guest
+      - SPRING_RABBITMQ_PASSWORD=guest
+      - SPRING_DATA_MONGODB_URI=mongodb://usertest:usertest@mongo-service:27017/trackingsystem
+    depends_on:
+      - rabbitmq-broker-service
+      - mongo-service
+      
+volumes:
+  mongo-data:
+  rabbitmq-data:
+  postgres-data:
+  
+networks:
+  virtual_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 173.18.0.0/16
+          gateway: 173.18.0.1
