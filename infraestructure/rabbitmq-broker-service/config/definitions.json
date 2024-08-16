@@ -1,0 +1,32 @@
+{
+  "exchanges": [
+    {
+      "name": "my-exchange",
+      "vhost": "/",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+  "queues": [
+    {
+      "name": "temperature-data",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    }
+  ],
+  "bindings": [
+    {
+      "source": "my-exchange",
+      "vhost": "/",
+      "destination": "temperature-data",
+      "destination_type": "queue",
+      "routing_key": "my-routing-key",
+      "arguments": {}
+    }
+  ]
+}
