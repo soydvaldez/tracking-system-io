@@ -35,3 +35,10 @@ out/
 
 ### VS Code ###
 .vscode/
+
+
+# Ignora Temporalmente
+/infraestructure/ssh-service/
+
+/services/*
+!/services/obtener_services.sh
