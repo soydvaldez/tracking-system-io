@@ -81,7 +81,7 @@ services:
 
   api-gateway-service1:
     build:
-      context: ./api-gateway-service
+      context: ./services/api-gateway-service
       dockerfile: Dockerfile
     image: localhost:5000/api-gateway-service:1.0.0
     container_name: api-gateway-service1
@@ -98,7 +98,7 @@ services:
 
   api-gateway-service2:
     build:
-      context: ./api-gateway-service
+      context: ./services/api-gateway-service
       dockerfile: Dockerfile
     image: localhost:5000/api-gateway-service:1.0.0
     container_name: api-gateway-service2
@@ -115,7 +115,7 @@ services:
 
   sensor-manager-service:
     build:
-      context: ./sensor-manager-service
+      context: ./services/sensor-manager-service
       dockerfile: Dockerfile
     image: localhost:5000/sensor-manager-service:1.0.0
     container_name: sensor-manager-service
@@ -140,7 +140,7 @@ services:
 
   sensor-ingest-service:
     build:
-      context: ./sensor-ingest-service
+      context: ./services/sensor-ingest-service
       dockerfile: Dockerfile
     image: localhost:5000/sensor-ingest-service:1.0.0
     container_name: sensor-ingest-service
@@ -161,7 +161,7 @@ services:
 
   sensor-storage-service:
     build:
-      context: ./sensor-storage-service
+      context: ./services/sensor-storage-service
       dockerfile: Dockerfile
     image: localhost:5000/sensor-storage-service:1.0.0
     container_name: sensor-storage-service
