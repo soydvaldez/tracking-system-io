@@ -1,0 +1,67 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.3.2'
+	id 'io.spring.dependency-management' version '1.1.6'
+}
+
+group = 'io.tracksystem'
+version = '0.0.1-SNAPSHOT'
+description = 'This microservice is useful for registering, reading, reading by ID, updating, and deleting temperature IoT sensors.'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-amqp'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	// Dev dependencies
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	
+	compileOnly 'org.projectlombok:lombok:1.18.28' // Verifica que sea la versión que estás usando
+    annotationProcessor 'org.projectlombok:lombok:1.18.28'
+    testCompileOnly 'org.projectlombok:lombok:1.18.28' // Para pruebas
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.28'
+
+	// Testing dependencies
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.amqp:spring-rabbit-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	// Config pool conections to database
+	implementation 'com.zaxxer:HikariCP:5.1.0'
+
+	// Drivers database connection
+	runtimeOnly 'com.oracle.database.jdbc:ojdbc10:19.23.0.0'
+	runtimeOnly 'org.postgresql:postgresql'
+	runtimeOnly 'com.h2database:h2'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+test {
+    testLogging {
+        events "passed", "skipped", "failed" //, "standardOut", "standardError"
+
+        showExceptions true
+        exceptionFormat "full"
+        showCauses true
+        showStackTraces true
+        showStandardStreams = false
+    }
+}
