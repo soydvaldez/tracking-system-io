@@ -1,0 +1,50 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.3.2'
+	id 'io.spring.dependency-management' version '1.1.6'
+}
+
+group = 'io.tracksystem'
+version = '0.0.1-SNAPSHOT'
+description = 'This microservice is useful for persisting temperature sensor readings from IoT devices into a database.'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-amqp'
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.amqp:spring-rabbit-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+	
+	implementation 'org.testcontainers:testcontainers'
+	implementation 'org.testcontainers:rabbitmq'
+	
+	// Añadir Jackson Databind
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+    
+    // Opcionalmente, añadir Jackson Core y Jackson Annotations
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.15.2'
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.15.2'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
